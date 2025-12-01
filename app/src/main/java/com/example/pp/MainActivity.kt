@@ -49,6 +49,7 @@ import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -181,232 +182,6 @@ fun Main(modifier: Modifier) {
     }
 }
 
-@OptIn(DelicateCoroutinesApi::class)
-@Composable
-fun Login(navController: NavHostController, api: MyApi, vm: MyViewModel) {
-
-    val user = vm.user
-
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(Blue64),
-        contentAlignment = Alignment.Center
-    ) {
-        Column(
-            verticalArrangement = Arrangement.Center,
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            Column(
-                modifier = Modifier
-                    .padding(
-                        top = 8.dp,
-                        start = 40.dp,
-                        end = 40.dp
-                    )
-                    .shadow(
-                        elevation = 5.dp,
-                        shape = RoundedCornerShape(16.dp)
-                    )
-                    .height(350.dp)
-                    .fillMaxWidth()
-                    .background(
-                        color = Grey224,
-                        shape = RoundedCornerShape(12.dp)
-                    ),
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                Column(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(
-                            top = 8.dp,
-                            start = 24.dp,
-                            end = 24.dp,
-                            bottom = 4.dp
-                        ),
-                    verticalArrangement = Arrangement.SpaceAround,
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    var email by remember { mutableStateOf("") }
-                    var password by remember { mutableStateOf("") }
-                    val emailFocusReq = remember { FocusRequester() }
-                    val passwordFocusReq = remember { FocusRequester() }
-                    var onEmailFocused by remember { mutableStateOf(false) }
-                    var onPasswordFocused by remember { mutableStateOf(false) }
-                    Text(
-                        text = "Log in to your account",
-                        fontWeight = FontWeight(300),
-                        fontSize = 20.sp,
-                        color = Blue64
-                    )
-                    TextField(
-                        value = email,
-                        onValueChange = { newText -> email = newText.trim() },
-                        label = {
-                            Text(
-                                text = "Email",
-                                fontWeight = FontWeight(200),
-                                fontSize =
-                                    if (onEmailFocused || email.isNotEmpty())
-                                        11.sp
-                                    else
-                                        14.sp,
-                                color = Grey153
-                            )
-                        },
-                        textStyle = TextStyle(
-                            fontWeight = FontWeight(200),
-                            fontSize = 16.sp,
-                            color = Blue64
-                        ),
-                        colors = TextFieldDefaults.colors(
-                            unfocusedTextColor = Grey153,
-                            focusedTextColor = Blue64,
-                            unfocusedContainerColor = Grey224,
-                            focusedContainerColor = Grey224,
-                            unfocusedIndicatorColor = Blue64,
-                            focusedIndicatorColor = Blue64,
-                            cursorColor = Blue64
-                        ),
-                        modifier = Modifier
-                            .onFocusChanged { state ->
-                                onEmailFocused = state.isFocused
-                            }
-                            .focusRequester(emailFocusReq)
-                    )
-                    TextField(
-                        value = password,
-                        onValueChange = { newText -> password = newText.trim() },
-                        label = {
-                            Text(
-                                text = "Password",
-                                fontWeight = FontWeight(200),
-                                fontSize =
-                                    if (onPasswordFocused || password.isNotEmpty())
-                                        11.sp
-                                    else
-                                        14.sp,
-                                color = Grey153
-                            )
-                        },
-                        textStyle = TextStyle(
-                            fontWeight = FontWeight(200),
-                            fontSize = 16.sp,
-                            color = Blue64
-                        ),
-                        colors = TextFieldDefaults.colors(
-                            unfocusedTextColor = Grey153,
-                            focusedTextColor = Blue64,
-                            unfocusedContainerColor = Grey224,
-                            focusedContainerColor = Grey224,
-                            unfocusedIndicatorColor = Blue64,
-                            focusedIndicatorColor = Blue64,
-                            cursorColor = Blue64
-                        ),
-                        visualTransformation = PasswordVisualTransformation(),
-                        modifier = Modifier
-                            .onFocusChanged { state ->
-                                onPasswordFocused = state.isFocused
-                            }
-                            .focusRequester(passwordFocusReq)
-                    )
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceAround,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        TextButton(
-                            onClick = {
-
-                            },
-                            colors = ButtonDefaults.buttonColors(
-                                containerColor = Grey224,
-                                contentColor = Blue64
-                            ),
-                            shape = RoundedCornerShape(12.dp),
-                            border = BorderStroke(
-                                width = 1.dp,
-                                color = Blue64
-                            )
-                        ) {
-                            Text(
-                                text = "I forgot password",
-                                fontWeight = FontWeight(300),
-                                fontSize = 14.sp
-                            )
-                        }
-                        Button(
-                            onClick = {
-
-                                val call: Call<TokenResponse>? = api.login(
-                                    userName = email,
-                                    password = password
-                                )
-
-                                call!!.enqueue(object: Callback<TokenResponse?> {
-
-                                    override fun onResponse(
-                                        call: Call<TokenResponse?>,
-                                        response: Response<TokenResponse?>
-                                    ) {
-
-                                        if (!response.isSuccessful) {
-                                            val errorBody = response.errorBody()?.string()
-                                            Log.e("My Login", "Error body: $errorBody")
-                                        }
-
-                                        val token: TokenResponse? = response.body()
-                                        vm.setToken(token!!)
-
-                                        Log.d("My Login", "token: ${token.token} tokenType: ${token.tokenType}")
-                                    }
-
-                                    override fun onFailure(
-                                        call: Call<TokenResponse?>,
-                                        t: Throwable
-                                    ) {
-                                        Log.d("My Reg", "onFailure error ${t.message.toString()}")
-                                    }
-
-                                })
-
-                                navController.navigate(NavRoutes.Home.route)
-
-                            },
-                            colors = ButtonDefaults.buttonColors(
-                                containerColor = Blue64,
-                                contentColor = Grey224
-                            ),
-                            shape = RoundedCornerShape(12.dp)
-                        ) {
-                            Text(
-                                text = "Log in",
-                                fontWeight = FontWeight(300),
-                                fontSize = 14.sp
-                            )
-                        }
-                    }
-                }
-            }
-            TextButton(
-                onClick = { navController.navigate(NavRoutes.Register.route) },
-            ) {
-                Text(
-                    text = "If you have not account click here",
-                    color = Grey224,
-                    fontSize = 12.sp,
-                    fontWeight = FontWeight(300)
-                )
-            }
-        }
-    }
-}
-
-@Composable
-fun ForgotPassword(navController: NavHostController, api: MyApi, vm: MyViewModel) {
-
-}
 
 @Composable
 fun Register(navController: NavHostController, api: MyApi, vm: MyViewModel) {
@@ -635,45 +410,15 @@ fun Register(navController: NavHostController, api: MyApi, vm: MyViewModel) {
                                 password = password,
                                 fullName = fullName
                             )
-                            val call: Call<RegisterResponse>? = api.register(data)
-                            call!!.enqueue(object: Callback<RegisterResponse?> {
+                            vm.viewModelScope.launch {
+                                val tokenIsReceived = withContext(Dispatchers.IO) {
+                                    val response = api.register(data)
+                                    if (response.isSuccessful) {
 
-                                override fun onResponse(
-                                    call: Call<RegisterResponse?>,
-                                    response: Response<RegisterResponse?>
-                                ) {
-
-                                    Log.d(
-                                        "My Reg",
-                                        "error text: ${response.message()} error code: ${response.code()}"
-                                    )
-                                    if (!response.isSuccessful) {
-                                        val errorBody = response.errorBody()?.string()
-                                        Log.e("My Reg", "Error body: $errorBody")
+                                        navController.navigate(NavRoutes.Home.route)
                                     }
-
-                                    val user: RegisterResponse? = response.body()
-
-                                    vm.user = User(
-                                        id = user!!.id,
-                                        email = user.email,
-                                        password = password,
-                                        fullName = user.fullName
-                                    )
-
-                                    Log.d("My Reg", "id: ${user.id}, email: ${user.email} fullName: ${user.fullName}")
                                 }
-
-                                override fun onFailure(
-                                    call: Call<RegisterResponse?>,
-                                    t: Throwable
-                                ) {
-                                    Log.d("My Reg", "onFailure error ${t.message.toString()}")
-                                }
-
-                            })
-
-                            navController.navigate(NavRoutes.Home.route)
+                            }
                         },
                         colors = ButtonDefaults.buttonColors(
                             containerColor = Blue64,
@@ -707,8 +452,218 @@ fun Register(navController: NavHostController, api: MyApi, vm: MyViewModel) {
     }
 }
 
+@OptIn(DelicateCoroutinesApi::class)
+@Composable
+fun Login(navController: NavHostController, api: MyApi, vm: MyViewModel) {
+
+    val user = vm.user
+    val token by vm.token.observeAsState()
+
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Blue64),
+        contentAlignment = Alignment.Center
+    ) {
+        Column(
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Column(
+                modifier = Modifier
+                    .padding(
+                        top = 8.dp,
+                        start = 40.dp,
+                        end = 40.dp
+                    )
+                    .shadow(
+                        elevation = 5.dp,
+                        shape = RoundedCornerShape(16.dp)
+                    )
+                    .height(350.dp)
+                    .fillMaxWidth()
+                    .background(
+                        color = Grey224,
+                        shape = RoundedCornerShape(12.dp)
+                    ),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(
+                            top = 8.dp,
+                            start = 24.dp,
+                            end = 24.dp,
+                            bottom = 4.dp
+                        ),
+                    verticalArrangement = Arrangement.SpaceAround,
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    var email by remember { mutableStateOf("") }
+                    var password by remember { mutableStateOf("") }
+                    val emailFocusReq = remember { FocusRequester() }
+                    val passwordFocusReq = remember { FocusRequester() }
+                    var onEmailFocused by remember { mutableStateOf(false) }
+                    var onPasswordFocused by remember { mutableStateOf(false) }
+
+                    Text(
+                        text = "Log in to your account",
+                        fontWeight = FontWeight(300),
+                        fontSize = 20.sp,
+                        color = Blue64
+                    )
+                    TextField(
+                        value = email,
+                        onValueChange = { newText -> email = newText.trim() },
+                        label = {
+                            Text(
+                                text = "Email",
+                                fontWeight = FontWeight(200),
+                                fontSize =
+                                    if (onEmailFocused || email.isNotEmpty())
+                                        11.sp
+                                    else
+                                        14.sp,
+                                color = Grey153
+                            )
+                        },
+                        textStyle = TextStyle(
+                            fontWeight = FontWeight(200),
+                            fontSize = 16.sp,
+                            color = Blue64
+                        ),
+                        colors = TextFieldDefaults.colors(
+                            unfocusedTextColor = Grey153,
+                            focusedTextColor = Blue64,
+                            unfocusedContainerColor = Grey224,
+                            focusedContainerColor = Grey224,
+                            unfocusedIndicatorColor = Blue64,
+                            focusedIndicatorColor = Blue64,
+                            cursorColor = Blue64
+                        ),
+                        modifier = Modifier
+                            .onFocusChanged { state ->
+                                onEmailFocused = state.isFocused
+                            }
+                            .focusRequester(emailFocusReq)
+                    )
+                    TextField(
+                        value = password,
+                        onValueChange = { newText -> password = newText.trim() },
+                        label = {
+                            Text(
+                                text = "Password",
+                                fontWeight = FontWeight(200),
+                                fontSize =
+                                    if (onPasswordFocused || password.isNotEmpty())
+                                        11.sp
+                                    else
+                                        14.sp,
+                                color = Grey153
+                            )
+                        },
+                        textStyle = TextStyle(
+                            fontWeight = FontWeight(200),
+                            fontSize = 16.sp,
+                            color = Blue64
+                        ),
+                        colors = TextFieldDefaults.colors(
+                            unfocusedTextColor = Grey153,
+                            focusedTextColor = Blue64,
+                            unfocusedContainerColor = Grey224,
+                            focusedContainerColor = Grey224,
+                            unfocusedIndicatorColor = Blue64,
+                            focusedIndicatorColor = Blue64,
+                            cursorColor = Blue64
+                        ),
+                        visualTransformation = PasswordVisualTransformation(),
+                        modifier = Modifier
+                            .onFocusChanged { state ->
+                                onPasswordFocused = state.isFocused
+                            }
+                            .focusRequester(passwordFocusReq)
+                    )
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceAround,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        TextButton(
+                            onClick = {
+
+                            },
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = Grey224,
+                                contentColor = Blue64
+                            ),
+                            shape = RoundedCornerShape(12.dp),
+                            border = BorderStroke(
+                                width = 1.dp,
+                                color = Blue64
+                            )
+                        ) {
+                            Text(
+                                text = "I forgot password",
+                                fontWeight = FontWeight(300),
+                                fontSize = 14.sp
+                            )
+                        }
+                        Button(
+                            onClick = {
+                                vm.viewModelScope.launch {
+                                    val response = api.login(
+                                        userName = email,
+                                        password = password
+                                    )
+                                    if (response.isSuccessful) {
+                                        val token = response.body()
+                                        Log.d("My Login", "token: ${token}")
+                                        vm.setToken(token!!.token)
+                                        Log.d("My Login", "vm token: ${vm.token.value}")
+                                        navController.navigate(NavRoutes.Home.route)
+                                    }
+                                }
+                            },
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = Blue64,
+                                contentColor = Grey224
+                            ),
+                            shape = RoundedCornerShape(12.dp)
+                        ) {
+                            Text(
+                                text = "Log in",
+                                fontWeight = FontWeight(300),
+                                fontSize = 14.sp
+                            )
+                        }
+                    }
+                }
+            }
+            TextButton(
+                onClick = { navController.navigate(NavRoutes.Register.route) },
+            ) {
+                Text(
+                    text = "If you have not account click here",
+                    color = Grey224,
+                    fontSize = 12.sp,
+                    fontWeight = FontWeight(300)
+                )
+            }
+        }
+    }
+}
+
+@Composable
+fun ForgotPassword(navController: NavHostController, api: MyApi, vm: MyViewModel) {
+
+}
+
 @Composable
 fun Home(navController: NavHostController, api: MyApi, vm: MyViewModel) {
+
+    val user = vm.user
+    val token by vm.token.observeAsState()
 
     Box(
         modifier = Modifier
@@ -717,23 +672,18 @@ fun Home(navController: NavHostController, api: MyApi, vm: MyViewModel) {
     ) {
 
         val context = LocalContext.current
-        val coroutineScope = rememberCoroutineScope()
 
         var imageList by remember { mutableStateOf<List<HistoryImageResponse>>(emptyList()) }
-        var imageUri by remember { mutableStateOf<Uri?>(null) }
-        var imageId by remember {mutableStateOf("")}
         var isListEmpty by remember { mutableStateOf(false) }
 
-        val user = vm.user
-        val token = "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI1QGV4YW1wbGUuY29tIiwiZXhwIjoxNzY0Mjg0NTkyfQ.Pw5E9pFclY9bHguUz-Lz3bn4SUIU4Fu8qRisM6YofLE"
-
         LaunchedEffect(Unit) {
-            val history = withContext(Dispatchers.IO) {
-                api.getHistory(token)
-            }
-            imageList = history
-            if (imageList.isEmpty()) {
-                isListEmpty = true
+            if (token != null) {
+                Log.d("My Image Upload", "token != null")
+                val history = withContext(Dispatchers.IO) {
+                    api.getHistory("Bearer ${token!!}")
+                }
+                imageList = history
+                isListEmpty = imageList.isEmpty()
             }
         }
 
@@ -750,11 +700,10 @@ fun Home(navController: NavHostController, api: MyApi, vm: MyViewModel) {
                             val imagePart = createImagePart(file, "image/jpeg")
                             val response = api.uploadImage(
                                 file = imagePart,
-                                token = token
+                                token = token!!
                             )
                             if (response.isSuccessful) {
                                 val uploadResponse = response.body()
-                                imageId = uploadResponse!!.id
                             } else {
                                 val errorBody = response.errorBody()?.string()
                                 Log.d("My Upload Image", "Upload failed: $errorBody")
@@ -764,7 +713,7 @@ fun Home(navController: NavHostController, api: MyApi, vm: MyViewModel) {
                         if (uploadSuccess) {
                             Log.d("My Upload Image", "uploadSuccess")
                             val history = withContext(Dispatchers.IO) {
-                                api.getHistory(token)
+                                api.getHistory(token!!)
                             }
                             imageList = history
                             Log.d("My Upload Image", "history size: ${history.size}")
@@ -791,7 +740,7 @@ fun Home(navController: NavHostController, api: MyApi, vm: MyViewModel) {
                 LazyColumn(
                     modifier = Modifier
                         .fillMaxSize()
-                        .padding(top = 16.dp),
+                        .padding(top = 30.dp),
                     contentPadding = PaddingValues(16.dp),
                     verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
@@ -802,13 +751,6 @@ fun Home(navController: NavHostController, api: MyApi, vm: MyViewModel) {
                         ) {
 
                             Log.d("My Upload Image", image.originalURL)
-
-                            val original = rememberAsyncImagePainter(
-                                model = image.originalURL
-                            )
-                            val result = rememberAsyncImagePainter(
-                                model = image.resultURL
-                            )
 
                             AsyncImage(
                                 modifier = Modifier

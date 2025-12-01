@@ -7,16 +7,13 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import com.example.pp.retrofit.classes.User
 import com.example.pp.retrofit.response.TokenResponse
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
 
 class MyViewModel: ViewModel() {
 
     var user by mutableStateOf<User?>(null)
-    val token: MutableLiveData<TokenResponse> = MutableLiveData()
+    val token: MutableLiveData<String> = MutableLiveData()
 
-    fun setToken(newToken: TokenResponse) {
+    fun setToken(newToken: String) {
         token.value = newToken
     }
 

@@ -25,19 +25,19 @@ interface MyApi {
     ): List<HistoryImageResponse>
 
     @POST("auth/register")
-    fun register(
+    suspend fun register(
         @Body req: RegisterData
-    ): Call<RegisterResponse>
+    ): retrofit2.Response<RegisterResponse>
 
     @FormUrlEncoded
     @POST("auth/login")
-    fun login(
+    suspend fun login(
         @Field("username") userName: String,
         @Field("password") password: String,
         @Field("scope") scope: String? = null,
         @Field("client_id") clientId: String? = null,
         @Field("client_secret") clientSecret: String? = null
-    ): Call<TokenResponse>
+    ): retrofit2.Response<TokenResponse>
 
     @Multipart
     @POST("images/upload")
