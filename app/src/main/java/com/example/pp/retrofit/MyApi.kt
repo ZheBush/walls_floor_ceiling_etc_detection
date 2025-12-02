@@ -2,6 +2,7 @@ package com.example.pp.retrofit
 
 import com.example.pp.retrofit.classes.RegisterData
 import com.example.pp.retrofit.response.HistoryImageResponse
+import com.example.pp.retrofit.response.ImageResponse
 import com.example.pp.retrofit.response.TokenResponse
 import com.example.pp.retrofit.response.RegisterResponse
 import com.example.pp.retrofit.response.UploadImageResponse
@@ -18,11 +19,6 @@ import retrofit2.http.POST
 import retrofit2.http.Part
 
 interface MyApi {
-
-    @GET("images/history")
-    suspend fun getHistory(
-        @Header("Authorization") token: String
-    ): List<HistoryImageResponse>
 
     @POST("auth/register")
     suspend fun register(
@@ -46,6 +42,14 @@ interface MyApi {
         @Header("Authorization") token: String
     ): retrofit2.Response<UploadImageResponse>
 
+    @GET
+    suspend fun getImageById(
+        @Header("Authorization") token: String
+    ): ImageResponse
 
+    @GET("images/history")
+    suspend fun getHistory(
+        @Header("Authorization") token: String
+    ): List<HistoryImageResponse>
 
 }

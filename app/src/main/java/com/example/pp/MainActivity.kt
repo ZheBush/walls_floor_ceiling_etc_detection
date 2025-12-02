@@ -50,6 +50,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -140,19 +141,6 @@ fun Main(modifier: Modifier) {
             },
             route = NavRoutes.Login.route
         ) { Login(navController, api, viewModel) }
-        composable(
-            enterTransition = {
-                fadeIn(
-                    animationSpec = tween(100)
-                )
-            },
-            exitTransition = {
-                fadeOut(
-                    animationSpec = tween(100)
-                )
-            },
-            route = NavRoutes.ForgotPassword.route
-        ) { ForgotPassword(navController, api, viewModel) }
         composable(
             enterTransition = {
                 fadeIn(
@@ -618,7 +606,7 @@ fun Login(navController: NavHostController, api: MyApi, vm: MyViewModel) {
                                     )
                                     if (response.isSuccessful) {
                                         val token = response.body()
-                                        Log.d("My Login", "token: ${token}")
+                                        Log.d("My Login", "token: $token")
                                         vm.setToken(token!!.token)
                                         Log.d("My Login", "vm token: ${vm.token.value}")
                                         navController.navigate(NavRoutes.Home.route)
@@ -655,11 +643,6 @@ fun Login(navController: NavHostController, api: MyApi, vm: MyViewModel) {
 }
 
 @Composable
-fun ForgotPassword(navController: NavHostController, api: MyApi, vm: MyViewModel) {
-
-}
-
-@Composable
 fun Home(navController: NavHostController, api: MyApi, vm: MyViewModel) {
 
     val user = vm.user
@@ -673,17 +656,25 @@ fun Home(navController: NavHostController, api: MyApi, vm: MyViewModel) {
 
         val context = LocalContext.current
 
-        var imageList by remember { mutableStateOf<List<HistoryImageResponse>>(emptyList()) }
+        val imageList = remember { mutableStateListOf<HistoryImageResponse>() }
+        var currentSize by remember { mutableIntStateOf(0) }
         var isListEmpty by remember { mutableStateOf(false) }
+        var isHistoryLoading by remember { mutableStateOf(true) }
 
-        LaunchedEffect(Unit) {
+        LaunchedEffect(isHistoryLoading) {
             if (token != null) {
                 Log.d("My Image Upload", "token != null")
                 val history = withContext(Dispatchers.IO) {
                     api.getHistory("Bearer ${token!!}")
                 }
-                imageList = history
+                for (i in history.indices) {
+                    if (i >= currentSize) {
+                        imageList.add(history[i])
+                    }
+                }
+                currentSize = imageList.size
                 isListEmpty = imageList.isEmpty()
+                isHistoryLoading = false
             }
         }
 
@@ -696,12 +687,15 @@ fun Home(navController: NavHostController, api: MyApi, vm: MyViewModel) {
 
                     vm.viewModelScope.launch {
                         val uploadSuccess = withContext(Dispatchers.IO) {
+
                             val file = getFileFromUri(context, uri)
                             val imagePart = createImagePart(file, "image/jpeg")
+
                             val response = api.uploadImage(
                                 file = imagePart,
-                                token = token!!
+                                token = "Bearer ${token!!}"
                             )
+                            Log.d("My Upload Image", "response: ${response.body()}")
                             if (response.isSuccessful) {
                                 val uploadResponse = response.body()
                             } else {
@@ -712,11 +706,7 @@ fun Home(navController: NavHostController, api: MyApi, vm: MyViewModel) {
                         }
                         if (uploadSuccess) {
                             Log.d("My Upload Image", "uploadSuccess")
-                            val history = withContext(Dispatchers.IO) {
-                                api.getHistory(token!!)
-                            }
-                            imageList = history
-                            Log.d("My Upload Image", "history size: ${history.size}")
+                            isHistoryLoading = true
                         }
                     }
                 }
@@ -752,13 +742,12 @@ fun Home(navController: NavHostController, api: MyApi, vm: MyViewModel) {
 
                             Log.d("My Upload Image", image.originalURL)
 
-                            AsyncImage(
+                            LoadingImage(
+                                url = image.originalURL,
                                 modifier = Modifier
+                                    .fillMaxWidth()
                                     .padding(6.dp)
-                                    .clip(RoundedCornerShape(16.dp)),
-                                contentScale = ContentScale.Fit,
-                                model = image.originalURL,
-                                contentDescription = "image"
+                                    .clip(RoundedCornerShape(16.dp))
                             )
                             Icon(
                                 imageVector = Icons.Filled.KeyboardArrowDown,
@@ -767,6 +756,9 @@ fun Home(navController: NavHostController, api: MyApi, vm: MyViewModel) {
                             LoadingImage(
                                 url = image.resultURL,
                                 modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(6.dp)
+                                    .clip(RoundedCornerShape(16.dp))
                             )
                             Button(
                                 onClick = {
