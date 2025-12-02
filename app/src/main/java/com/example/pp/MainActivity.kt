@@ -3,8 +3,6 @@ package com.example.pp
 import android.app.Activity
 import android.content.Context
 import android.content.Intent
-import android.graphics.Bitmap
-import android.graphics.BitmapFactory
 import android.net.Uri
 import android.os.Bundle
 import android.provider.MediaStore
@@ -18,8 +16,8 @@ import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -54,9 +52,7 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
-import androidx.compose.runtime.toMutableStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -64,7 +60,6 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -78,33 +73,21 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import coil.compose.AsyncImage
-import coil.compose.rememberAsyncImagePainter
 import com.example.pp.retrofit.MyApi
 import com.example.pp.retrofit.RetrofitClient
 import com.example.pp.retrofit.classes.RegisterData
-import com.example.pp.retrofit.classes.User
 import com.example.pp.retrofit.response.HistoryImageResponse
-import com.example.pp.retrofit.response.TokenResponse
-import com.example.pp.retrofit.response.RegisterResponse
-import com.example.pp.retrofit.response.UploadImageResponse
 import com.example.pp.ui.theme.Blue64
 import com.example.pp.ui.theme.Grey153
 import com.example.pp.ui.theme.Grey224
 import com.example.pp.ui.theme.Red127
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
-import okhttp3.OkHttpClient
-import okhttp3.Request
 import okhttp3.RequestBody.Companion.asRequestBody
-import retrofit2.Call
-import retrofit2.Callback
-import retrofit2.Response
 import java.io.File
 
 class MainActivity : ComponentActivity() {
@@ -121,9 +104,18 @@ class MainActivity : ComponentActivity() {
 
 @Composable
 fun Main(modifier: Modifier) {
+
     val api = RetrofitClient.getInstance().create(MyApi::class.java)
     val navController = rememberNavController()
-    val viewModel: MyViewModel = viewModel()
+
+    val viewModel: RetrofitViewModel = viewModel()
+
+    val context = LocalContext.current
+    val imageDownloader = remember { ImageDownloader(context) }
+    val imageViewModel: ImageViewModel = viewModel(
+        factory = ImageViewModelFactory(imageDownloader)
+    )
+
     NavHost(
         navController = navController,
         startDestination = NavRoutes.Login.route
@@ -166,13 +158,13 @@ fun Main(modifier: Modifier) {
                 )
             },
             route = NavRoutes.Home.route
-        ) { Home(navController, api, viewModel) }
+        ) { Home(navController, api, viewModel, imageViewModel) }
     }
 }
 
 
 @Composable
-fun Register(navController: NavHostController, api: MyApi, vm: MyViewModel) {
+fun Register(navController: NavHostController, api: MyApi, vm: RetrofitViewModel) {
 
     Box(
         modifier = Modifier
@@ -442,7 +434,7 @@ fun Register(navController: NavHostController, api: MyApi, vm: MyViewModel) {
 
 @OptIn(DelicateCoroutinesApi::class)
 @Composable
-fun Login(navController: NavHostController, api: MyApi, vm: MyViewModel) {
+fun Login(navController: NavHostController, api: MyApi, vm: RetrofitViewModel) {
 
     val user = vm.user
     val token by vm.token.observeAsState()
@@ -643,7 +635,7 @@ fun Login(navController: NavHostController, api: MyApi, vm: MyViewModel) {
 }
 
 @Composable
-fun Home(navController: NavHostController, api: MyApi, vm: MyViewModel) {
+fun Home(navController: NavHostController, api: MyApi, vm: RetrofitViewModel, ivm: ImageViewModel) {
 
     val user = vm.user
     val token by vm.token.observeAsState()
@@ -762,16 +754,21 @@ fun Home(navController: NavHostController, api: MyApi, vm: MyViewModel) {
                             )
                             Button(
                                 onClick = {
-
+                                    ivm.downloadImage(image.resultURL)
                                 },
                                 colors = ButtonDefaults.buttonColors(
-                                    containerColor = Blue64,
-                                    contentColor = Grey224
+                                    containerColor = Grey224,
+                                    contentColor = Blue64
                                 ),
                                 shape = RoundedCornerShape(16.dp),
                                 modifier = Modifier
                                     .padding(6.dp)
                                     .fillMaxWidth()
+                                    .border(
+                                        width = 1.dp,
+                                        shape = RoundedCornerShape(16.dp),
+                                        color = Blue64
+                                    )
                             ) {
                                 Text(
                                     text = "Download image",
@@ -795,7 +792,7 @@ fun Home(navController: NavHostController, api: MyApi, vm: MyViewModel) {
             contentColor = Grey224,
             shape = RoundedCornerShape(16.dp),
             modifier = Modifier
-                .padding(24.dp)
+                .padding(22.dp)
                 .align(Alignment.BottomStart)
         ) {
             Icon(
@@ -811,7 +808,7 @@ fun Home(navController: NavHostController, api: MyApi, vm: MyViewModel) {
             contentColor = Grey224,
             shape = RoundedCornerShape(16.dp),
             modifier = Modifier
-                .padding(24.dp)
+                .padding(22.dp)
                 .align(Alignment.BottomEnd)
         ) {
             Icon(
