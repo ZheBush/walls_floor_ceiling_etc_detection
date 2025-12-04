@@ -1,6 +1,7 @@
 package com.example.pp.main
 
 import android.util.Log
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -17,6 +18,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -60,8 +62,6 @@ fun Register(navController: NavHostController, api: MyApi, vm: RetrofitViewModel
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
 
-            var hint by remember { mutableStateOf("") }
-
             Column(
                 modifier = Modifier
                     .padding(
@@ -86,7 +86,7 @@ fun Register(navController: NavHostController, api: MyApi, vm: RetrofitViewModel
                     modifier = Modifier
                         .fillMaxSize()
                         .padding(
-                            top = 8.dp,
+                            top = 16.dp,
                             start = 24.dp,
                             end = 24.dp,
                             bottom = 4.dp
@@ -109,6 +109,21 @@ fun Register(navController: NavHostController, api: MyApi, vm: RetrofitViewModel
                     var onFullNameFocused by remember { mutableStateOf(false) }
                     var onPasswordFocused by remember { mutableStateOf(false) }
                     var onConfirmPasswordFocused by remember { mutableStateOf(false) }
+
+                    var oldEmail by remember { mutableStateOf("") }
+                    var oldFullName by remember { mutableStateOf("") }
+                    var oldPassword by remember { mutableStateOf("") }
+
+                    var isButtonClicked by remember { mutableStateOf(false) }
+                    var isUserExists by remember { mutableStateOf(false) }
+                    val isDataChanged = remember { derivedStateOf {
+                        !(email == oldPassword && fullName == oldFullName && password == oldPassword && oldEmail != "")
+                    } }
+                    val isAnyFieldEmpty = remember { derivedStateOf { (email == "" || fullName == "" || password == "") } }
+                    val arePasswordsSame = remember { derivedStateOf { password == confirmPassword } }
+                    val isButtonEnable = remember { derivedStateOf {
+                        !isButtonClicked || !isAnyFieldEmpty.value && !isUserExists && arePasswordsSame.value && isDataChanged.value
+                    } }
 
                     Text(
                         text = "Create new account",
@@ -255,46 +270,79 @@ fun Register(navController: NavHostController, api: MyApi, vm: RetrofitViewModel
                             }
                             .focusRequester(confirmPasswordFocusReq)
                     )
-                    if (password != confirmPassword) {
-                        Text(
-                            text = "Passwords are different",
-                            color = Red127,
-                            fontSize = 12.sp,
-                            fontWeight = FontWeight(300)
-                        )
-                    }
                     Button(
+                        enabled = isButtonEnable.value,
                         onClick = {
-                            val data = RegisterData(
-                                email = email,
-                                password = password,
-                                fullName = fullName
-                            )
-                            vm.viewModelScope.launch {
-                                val isTokenReceived = withContext(Dispatchers.IO) {
-                                    val response = api.register(data)
-                                    if (response.isSuccessful) {
-                                        navController.navigate(NavRoutes.Home.route)
-                                    }
-                                    else {
-                                        Log.d("My Reg", "${response.errorBody()}")
-                                        Log.d("My Reg", "email: ${data.email} name: ${data.fullName} pass: ${data.password}")
+                            isButtonClicked = true
+                            if (isButtonEnable.value) {
+                                val data = RegisterData(
+                                    email = email,
+                                    password = password,
+                                    fullName = fullName
+                                )
+                                vm.viewModelScope.launch {
+                                    withContext(Dispatchers.IO) {
+                                        val response = api.register(data)
+                                        if (response.isSuccessful) {
+                                            navController.navigate(NavRoutes.Home.route)
+                                        }
+                                        else {
+                                            Log.d("My Reg", "${response.errorBody()}")
+                                            oldEmail = email
+                                            oldFullName = fullName
+                                            oldPassword = password
+                                            isUserExists = true
+                                        }
                                     }
                                 }
                             }
                         },
                         colors = ButtonDefaults.buttonColors(
                             containerColor = Blue64,
-                            contentColor = Grey224
+                            contentColor = Grey224,
+                            disabledContainerColor = Grey224,
+                            disabledContentColor = Red127
                         ),
                         shape = RoundedCornerShape(12.dp),
-                        modifier = Modifier.fillMaxWidth()
+                        border = BorderStroke(
+                            width = 1.dp,
+                            color = if (isButtonEnable.value) Blue64 else Red127,
+                        ),
+                        modifier = Modifier
+                            .padding(bottom = 4.dp)
+                            .fillMaxWidth()
                     ) {
-                        Text(
-                            text = "Create account",
-                            fontWeight = FontWeight(300),
-                            fontSize = 14.sp
-                        )
+                        if (!arePasswordsSame.value) {
+                            Text(
+                                text = "Passwords are different",
+                                color = Red127,
+                                fontSize = 14.sp,
+                                fontWeight = FontWeight(300)
+                            )
+                        }
+                        else if (isUserExists) {
+                            Text(
+                                text = "User already exists",
+                                color = Red127,
+                                fontSize = 14.sp,
+                                fontWeight = FontWeight(300)
+                            )
+                        }
+                        else if (isButtonClicked && isAnyFieldEmpty.value) {
+                            Text(
+                                text = "Some field is empty",
+                                color = Red127,
+                                fontSize = 14.sp,
+                                fontWeight = FontWeight(300)
+                            )
+                        }
+                        else {
+                            Text(
+                                text = "Create account",
+                                fontSize = 14.sp,
+                                fontWeight = FontWeight(300)
+                            )
+                        }
                     }
                 }
             }

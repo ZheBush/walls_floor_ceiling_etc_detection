@@ -130,7 +130,7 @@ fun Login(navController: NavHostController, api: MyApi, vm: RetrofitViewModel) {
                             fontSize = 16.sp
                         ),
                         colors = TextFieldDefaults.colors(
-                            unfocusedTextColor = if (isDataCorrect) Grey224 else Red127,
+                            unfocusedTextColor = if (isDataCorrect) Blue64 else Red127,
                             focusedTextColor = if (isDataCorrect) Blue64 else Red127,
                             unfocusedContainerColor = Grey224,
                             focusedContainerColor = Grey224,
@@ -164,7 +164,7 @@ fun Login(navController: NavHostController, api: MyApi, vm: RetrofitViewModel) {
                             fontSize = 16.sp
                         ),
                         colors = TextFieldDefaults.colors(
-                            unfocusedTextColor = if (isDataCorrect) Grey224 else Red127,
+                            unfocusedTextColor = if (isDataCorrect) Blue64 else Red127,
                             focusedTextColor = if (isDataCorrect) Blue64 else Red127,
                             unfocusedContainerColor = Grey224,
                             focusedContainerColor = Grey224,
@@ -229,6 +229,7 @@ fun Login(navController: NavHostController, api: MyApi, vm: RetrofitViewModel) {
                                     }
                                     else {
                                         isDataCorrect = false
+                                        Log.d("My Login", response.errorBody().toString())
                                     }
                                 }
                             },

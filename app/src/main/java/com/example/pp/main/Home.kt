@@ -70,7 +70,6 @@ import java.io.File
 @Composable
 fun Home(navController: NavHostController, api: MyApi, vm: RetrofitViewModel, ivm: ImageViewModel) {
 
-    val user = vm.user
     val token by vm.token.observeAsState()
 
     Box(
@@ -92,9 +91,9 @@ fun Home(navController: NavHostController, api: MyApi, vm: RetrofitViewModel, iv
                 val history = withContext(Dispatchers.IO) {
                     api.getHistory("Bearer ${token!!}")
                 }
-                for (i in history.indices) {
-                    if (i >= currentSize) {
-                        imageList.add(history[i])
+                history.forEachIndexed { index, img ->
+                    if (index >= currentSize) {
+                        imageList.add(img)
                     }
                 }
                 currentSize = imageList.size
@@ -120,7 +119,9 @@ fun Home(navController: NavHostController, api: MyApi, vm: RetrofitViewModel, iv
                                 file = imagePart,
                                 token = "Bearer ${token!!}"
                             )
+
                             Log.d("My Upload Image", "response: ${response.body()}")
+
                             if (response.isSuccessful) {
                                 val uploadResponse = response.body()
                             } else {
@@ -213,7 +214,7 @@ fun createImagePart(file: File, mimeType: String): MultipartBody.Part {
     return MultipartBody.Part.createFormData("file", file.name, requestFile)
 }
 
-private fun getFileFromUri(context: Context, uri: Uri): File {
+fun getFileFromUri(context: Context, uri: Uri): File {
     val inputStream = context.contentResolver.openInputStream(uri)
     val file = File.createTempFile("upload", ".jpg", context.cacheDir)
     inputStream?.use { input ->
@@ -222,4 +223,8 @@ private fun getFileFromUri(context: Context, uri: Uri): File {
         }
     }
     return file
+}
+
+fun linkConverter(link: String): String {
+    return link.replace("localhost", "192.168.1.100")
 }
