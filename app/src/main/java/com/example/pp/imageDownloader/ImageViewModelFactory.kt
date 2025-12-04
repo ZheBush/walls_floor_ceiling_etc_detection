@@ -1,4 +1,4 @@
-package com.example.pp
+package com.example.pp.imageDownloader
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider

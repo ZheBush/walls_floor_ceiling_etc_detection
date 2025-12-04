@@ -1,14 +1,12 @@
 package com.example.pp.retrofit
 
 import com.example.pp.retrofit.classes.RegisterData
-import com.example.pp.retrofit.response.HistoryImageResponse
-import com.example.pp.retrofit.response.ImageResponse
-import com.example.pp.retrofit.response.TokenResponse
-import com.example.pp.retrofit.response.RegisterResponse
-import com.example.pp.retrofit.response.UploadImageResponse
+import com.example.pp.retrofit.responses.HistoryImageResponse
+import com.example.pp.retrofit.responses.ImageResponse
+import com.example.pp.retrofit.responses.TokenResponse
+import com.example.pp.retrofit.responses.RegisterResponse
+import com.example.pp.retrofit.responses.UploadImageResponse
 import okhttp3.MultipartBody
-import okhttp3.Response
-import retrofit2.Call
 import retrofit2.http.Body
 import retrofit2.http.Field
 import retrofit2.http.FormUrlEncoded

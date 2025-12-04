@@ -1,11 +1,9 @@
-package com.example.pp
+package com.example.pp.imageDownloader
 
 import android.app.DownloadManager
 import android.content.Context
 import android.media.MediaScannerConnection
-import android.net.Uri
 import android.os.Environment
-import androidx.core.content.ContextCompat
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.File
