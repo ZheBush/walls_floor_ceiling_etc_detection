@@ -117,13 +117,16 @@ fun Register(navController: NavHostController, api: MyApi, vm: RetrofitViewModel
                     var isButtonClicked by remember { mutableStateOf(false) }
                     var isUserExists by remember { mutableStateOf(false) }
                     val isDataChanged = remember { derivedStateOf {
-                        !(email == oldPassword && fullName == oldFullName && password == oldPassword && oldEmail != "")
+                        email != oldEmail || fullName != oldFullName || password != oldPassword
                     } }
                     val isAnyFieldEmpty = remember { derivedStateOf { (email == "" || fullName == "" || password == "") } }
                     val arePasswordsSame = remember { derivedStateOf { password == confirmPassword } }
                     val isButtonEnable = remember { derivedStateOf {
-                        !isButtonClicked || !isAnyFieldEmpty.value && !isUserExists && arePasswordsSame.value && isDataChanged.value
+                        !isButtonClicked || !isAnyFieldEmpty.value && !isUserExists && arePasswordsSame.value
+                                || isDataChanged.value && arePasswordsSame.value
                     } }
+
+                    var isRegisterSuccess by remember { mutableStateOf(false) }
 
                     Text(
                         text = "Create new account",
@@ -275,16 +278,17 @@ fun Register(navController: NavHostController, api: MyApi, vm: RetrofitViewModel
                         onClick = {
                             isButtonClicked = true
                             if (isButtonEnable.value) {
-                                val data = RegisterData(
+                                val registerData = RegisterData(
                                     email = email,
                                     password = password,
                                     fullName = fullName
                                 )
                                 vm.viewModelScope.launch {
                                     withContext(Dispatchers.IO) {
-                                        val response = api.register(data)
+                                        val response = api.register(registerData)
                                         if (response.isSuccessful) {
-                                            navController.navigate(NavRoutes.Home.route)
+                                            Log.d("MY Reg", "response is successful")
+                                            isRegisterSuccess = true
                                         }
                                         else {
                                             Log.d("My Reg", "${response.errorBody()}")
@@ -292,6 +296,22 @@ fun Register(navController: NavHostController, api: MyApi, vm: RetrofitViewModel
                                             oldFullName = fullName
                                             oldPassword = password
                                             isUserExists = true
+                                        }
+                                    }
+                                    if (isRegisterSuccess) {
+                                        val response = api.login(
+                                            userName = email,
+                                            password = password
+                                        )
+                                        if (response.isSuccessful) {
+                                            val token = response.body()
+                                            Log.d("My Login", "token: $token")
+                                            vm.setToken(token!!.token)
+                                            Log.d("My Login", "vm token: ${vm.token.value}")
+                                            navController.navigate(NavRoutes.Home.route)
+                                        }
+                                        else {
+                                            Log.d("My Login", response.errorBody().toString())
                                         }
                                     }
                                 }
@@ -312,29 +332,31 @@ fun Register(navController: NavHostController, api: MyApi, vm: RetrofitViewModel
                             .padding(bottom = 4.dp)
                             .fillMaxWidth()
                     ) {
-                        if (!arePasswordsSame.value) {
-                            Text(
-                                text = "Passwords are different",
-                                color = Red127,
-                                fontSize = 14.sp,
-                                fontWeight = FontWeight(300)
-                            )
-                        }
-                        else if (isUserExists) {
-                            Text(
-                                text = "User already exists",
-                                color = Red127,
-                                fontSize = 14.sp,
-                                fontWeight = FontWeight(300)
-                            )
-                        }
-                        else if (isButtonClicked && isAnyFieldEmpty.value) {
-                            Text(
-                                text = "Some field is empty",
-                                color = Red127,
-                                fontSize = 14.sp,
-                                fontWeight = FontWeight(300)
-                            )
+                        if (!isButtonEnable.value) {
+                            if (isButtonClicked && isAnyFieldEmpty.value) {
+                                Text(
+                                    text = "Some field is empty",
+                                    color = Red127,
+                                    fontSize = 14.sp,
+                                    fontWeight = FontWeight(300)
+                                )
+                            }
+                            else if (!arePasswordsSame.value) {
+                                Text(
+                                    text = "Passwords are different",
+                                    color = Red127,
+                                    fontSize = 14.sp,
+                                    fontWeight = FontWeight(300)
+                                )
+                            }
+                            else {
+                                Text(
+                                    text = "User already exists",
+                                    color = Red127,
+                                    fontSize = 14.sp,
+                                    fontWeight = FontWeight(300)
+                                )
+                            }
                         }
                         else {
                             Text(

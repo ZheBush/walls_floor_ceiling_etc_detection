@@ -20,6 +20,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -98,11 +99,23 @@ fun Login(navController: NavHostController, api: MyApi, vm: RetrofitViewModel) {
 
                     var email by remember { mutableStateOf("") }
                     var password by remember { mutableStateOf("") }
+
                     val emailFocusReq = remember { FocusRequester() }
                     val passwordFocusReq = remember { FocusRequester() }
+
                     var onEmailFocused by remember { mutableStateOf(false) }
                     var onPasswordFocused by remember { mutableStateOf(false) }
+
+                    var oldEmail by remember { mutableStateOf("") }
+                    var oldPassword by remember { mutableStateOf("") }
+
+                    var isButtonClicked by remember { mutableStateOf(false) }
+                    val isDataChanged = remember { derivedStateOf { email != oldEmail || password != oldPassword } }
+                    val isAnyFieldEmpty = remember { derivedStateOf { (email == "" || password == "") } }
                     var isDataCorrect by remember { mutableStateOf(true) }
+                    val isButtonEnable = remember { derivedStateOf {
+                        !isButtonClicked || !isAnyFieldEmpty.value && isDataCorrect || isDataChanged.value
+                    } }
 
                     Text(
                         text = "Log in to your account",
@@ -122,7 +135,7 @@ fun Login(navController: NavHostController, api: MyApi, vm: RetrofitViewModel) {
                                         11.sp
                                     else
                                         14.sp,
-                                color = if (isDataCorrect) Grey153 else Red127
+                                color = Grey153
                             )
                         },
                         textStyle = TextStyle(
@@ -130,13 +143,13 @@ fun Login(navController: NavHostController, api: MyApi, vm: RetrofitViewModel) {
                             fontSize = 16.sp
                         ),
                         colors = TextFieldDefaults.colors(
-                            unfocusedTextColor = if (isDataCorrect) Blue64 else Red127,
-                            focusedTextColor = if (isDataCorrect) Blue64 else Red127,
+                            unfocusedTextColor = Blue64,
+                            focusedTextColor = Blue64,
                             unfocusedContainerColor = Grey224,
                             focusedContainerColor = Grey224,
-                            unfocusedIndicatorColor = if (isDataCorrect) Blue64 else Red127,
-                            focusedIndicatorColor = if (isDataCorrect) Blue64 else Red127,
-                            cursorColor = if (isDataCorrect) Blue64 else Red127
+                            unfocusedIndicatorColor = Blue64,
+                            focusedIndicatorColor = Blue64,
+                            cursorColor = Blue64
                         ),
                         modifier = Modifier
                             .onFocusChanged { state ->
@@ -156,7 +169,7 @@ fun Login(navController: NavHostController, api: MyApi, vm: RetrofitViewModel) {
                                         11.sp
                                     else
                                         14.sp,
-                                color = if (isDataCorrect) Grey153 else Red127
+                                color = Grey153
                             )
                         },
                         textStyle = TextStyle(
@@ -164,13 +177,13 @@ fun Login(navController: NavHostController, api: MyApi, vm: RetrofitViewModel) {
                             fontSize = 16.sp
                         ),
                         colors = TextFieldDefaults.colors(
-                            unfocusedTextColor = if (isDataCorrect) Blue64 else Red127,
-                            focusedTextColor = if (isDataCorrect) Blue64 else Red127,
+                            unfocusedTextColor = Blue64,
+                            focusedTextColor = Blue64,
                             unfocusedContainerColor = Grey224,
                             focusedContainerColor = Grey224,
-                            unfocusedIndicatorColor = if (isDataCorrect) Blue64 else Red127,
-                            focusedIndicatorColor = if (isDataCorrect) Blue64 else Red127,
-                            cursorColor = if (isDataCorrect) Blue64 else Red127
+                            unfocusedIndicatorColor = Blue64,
+                            focusedIndicatorColor = Blue64,
+                            cursorColor = Blue64
                         ),
                         visualTransformation = PasswordVisualTransformation(),
                         modifier = Modifier
@@ -179,48 +192,17 @@ fun Login(navController: NavHostController, api: MyApi, vm: RetrofitViewModel) {
                             }
                             .focusRequester(passwordFocusReq)
                     )
-                    if (!isDataCorrect) {
-                        Text(
-                            text = "Incorrect login or password",
-                            color = Red127,
-                            fontSize = 12.sp,
-                            fontWeight = FontWeight(300)
-                        )
-                    }
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceAround,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        TextButton(
-                            onClick = {
-                                Toast.makeText(context, "Unlucky", Toast.LENGTH_SHORT).show()
-                            },
-                            colors = ButtonDefaults.buttonColors(
-                                containerColor = Grey224,
-                                contentColor = Blue64
-                            ),
-                            shape = RoundedCornerShape(12.dp),
-                            border = BorderStroke(
-                                width = 1.dp,
-                                color = Blue64
-                            )
-                        ) {
-                            Text(
-                                text = "I forgot password",
-                                fontWeight = FontWeight(300),
-                                fontSize = 14.sp
-                            )
-                        }
-                        Button(
-                            onClick = {
+                    Button(
+                        enabled = isButtonEnable.value,
+                        onClick = {
+                            isButtonClicked = true
+                            if (isButtonEnable.value) {
                                 vm.viewModelScope.launch {
                                     val response = api.login(
                                         userName = email,
                                         password = password
                                     )
                                     if (response.isSuccessful) {
-                                        isDataCorrect = true
                                         val token = response.body()
                                         Log.d("My Login", "token: $token")
                                         vm.setToken(token!!.token)
@@ -228,17 +210,44 @@ fun Login(navController: NavHostController, api: MyApi, vm: RetrofitViewModel) {
                                         navController.navigate(NavRoutes.Home.route)
                                     }
                                     else {
-                                        isDataCorrect = false
                                         Log.d("My Login", response.errorBody().toString())
+                                        oldEmail = email
+                                        oldPassword = password
+                                        isDataCorrect = false
                                     }
                                 }
-                            },
-                            colors = ButtonDefaults.buttonColors(
-                                containerColor = Blue64,
-                                contentColor = Grey224
-                            ),
-                            shape = RoundedCornerShape(12.dp)
-                        ) {
+                            }
+                        },
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = Blue64,
+                            contentColor = Grey224,
+                            disabledContainerColor = Grey224,
+                            disabledContentColor = Red127
+                        ),
+                        shape = RoundedCornerShape(12.dp),
+                        border = BorderStroke(
+                            width = 1.dp,
+                            color = if (isButtonEnable.value) Blue64 else Red127,
+                        ),
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        if (!isButtonEnable.value) {
+                            if (isButtonClicked && isAnyFieldEmpty.value) {
+                                Text(
+                                    text = "Some field is empty",
+                                    fontWeight = FontWeight(300),
+                                    fontSize = 14.sp
+                                )
+                            }
+                            else {
+                                Text(
+                                    text = "Incorrect email or password",
+                                    fontWeight = FontWeight(300),
+                                    fontSize = 14.sp
+                                )
+                            }
+                        }
+                        else {
                             Text(
                                 text = "Log in",
                                 fontWeight = FontWeight(300),
