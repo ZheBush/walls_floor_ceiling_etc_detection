@@ -76,7 +76,7 @@ fun Login(navController: NavHostController, api: MyApi, vm: RetrofitViewModel) {
                         elevation = 5.dp,
                         shape = RoundedCornerShape(16.dp)
                     )
-                    .height(350.dp)
+                    .height(300.dp)
                     .fillMaxWidth()
                     .background(
                         color = Grey224,

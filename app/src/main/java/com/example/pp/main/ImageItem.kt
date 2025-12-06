@@ -31,6 +31,7 @@ import com.example.pp.ui.theme.Grey224
 @Composable
 fun ImageItem(image: HistoryImageResponse, ivm: ImageViewModel) {
     Column(
+        modifier = Modifier.padding(horizontal = 4.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.SpaceEvenly
     ) {
@@ -41,7 +42,7 @@ fun ImageItem(image: HistoryImageResponse, ivm: ImageViewModel) {
             url = image.originalURL,
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(6.dp)
+                .padding(vertical = 4.dp)
                 .clip(RoundedCornerShape(16.dp))
         )
         Icon(
@@ -52,7 +53,7 @@ fun ImageItem(image: HistoryImageResponse, ivm: ImageViewModel) {
             url = image.resultURL,
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(6.dp)
+                .padding(vertical = 4.dp)
                 .clip(RoundedCornerShape(16.dp))
         )
         Button(
@@ -65,7 +66,7 @@ fun ImageItem(image: HistoryImageResponse, ivm: ImageViewModel) {
             ),
             shape = RoundedCornerShape(16.dp),
             modifier = Modifier
-                .padding(6.dp)
+                .padding(vertical = 8.dp)
                 .fillMaxWidth()
                 .border(
                     width = 1.dp,
