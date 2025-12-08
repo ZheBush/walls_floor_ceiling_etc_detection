@@ -84,7 +84,7 @@ fun Home(navController: NavHostController, api: MyApi, vm: RetrofitViewModel, iv
         var currentSize by remember { mutableIntStateOf(0) }
         var isListEmpty by remember { mutableStateOf(false) }
         var isHistoryLoading by remember { mutableStateOf(true) }
-        var fromNewToOld by remember { mutableStateOf(true) }
+        var fromNewToOld by remember { mutableStateOf(false) }
 
         LaunchedEffect(isHistoryLoading) {
             if (token != null) {
@@ -172,23 +172,6 @@ fun Home(navController: NavHostController, api: MyApi, vm: RetrofitViewModel, iv
                 ) {
                     IconButton(
                         onClick = {
-                            fromNewToOld = true
-                            isHistoryLoading = true
-                        },
-                    ) {
-                        Image(
-                            imageVector =
-                                if (fromNewToOld) {
-                                    ImageVector.vectorResource(R.drawable.sort_clock_ascending)
-                                }
-                                else {
-                                    ImageVector.vectorResource(R.drawable.sort_clock_descending_outline)
-                                },
-                            contentDescription = "sort asc"
-                        )
-                    }
-                    IconButton(
-                        onClick = {
                             fromNewToOld = false
                             isHistoryLoading = true
                         },
@@ -202,6 +185,23 @@ fun Home(navController: NavHostController, api: MyApi, vm: RetrofitViewModel, iv
                                     ImageVector.vectorResource(R.drawable.sort_clock_ascending_outline)
                                 },
                             contentDescription = "sort desc"
+                        )
+                    }
+                    IconButton(
+                        onClick = {
+                            fromNewToOld = true
+                            isHistoryLoading = true
+                        },
+                    ) {
+                        Image(
+                            imageVector =
+                                if (fromNewToOld) {
+                                    ImageVector.vectorResource(R.drawable.sort_clock_ascending)
+                                }
+                                else {
+                                    ImageVector.vectorResource(R.drawable.sort_clock_descending_outline)
+                                },
+                            contentDescription = "sort asc"
                         )
                     }
                 }
