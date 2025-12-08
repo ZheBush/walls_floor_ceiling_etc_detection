@@ -11,7 +11,6 @@ import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -28,9 +27,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ExitToApp
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.KeyboardArrowDown
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -46,7 +42,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.vectorResource
@@ -59,7 +54,6 @@ import com.example.pp.NavRoutes
 import com.example.pp.R
 import com.example.pp.retrofit.RetrofitViewModel
 import com.example.pp.imageDownloader.ImageViewModel
-import com.example.pp.imageDownloader.LoadingImage
 import com.example.pp.retrofit.MyApi
 import com.example.pp.retrofit.responses.HistoryImageResponse
 import com.example.pp.ui.theme.Blue64
@@ -183,7 +177,13 @@ fun Home(navController: NavHostController, api: MyApi, vm: RetrofitViewModel, iv
                         },
                     ) {
                         Image(
-                            imageVector = ImageVector.vectorResource(R.drawable.sort_clock_ascending),
+                            imageVector =
+                                if (fromNewToOld) {
+                                    ImageVector.vectorResource(R.drawable.sort_clock_ascending)
+                                }
+                                else {
+                                    ImageVector.vectorResource(R.drawable.sort_clock_descending_outline)
+                                },
                             contentDescription = "sort asc"
                         )
                     }
@@ -194,8 +194,14 @@ fun Home(navController: NavHostController, api: MyApi, vm: RetrofitViewModel, iv
                         },
                     ) {
                         Image(
-                            imageVector = ImageVector.vectorResource(R.drawable.sort_clock_descending),
-                            contentDescription = "sort asc"
+                            imageVector =
+                                if (!fromNewToOld) {
+                                    ImageVector.vectorResource(R.drawable.sort_clock_descending)
+                                }
+                                else {
+                                    ImageVector.vectorResource(R.drawable.sort_clock_ascending_outline)
+                                },
+                            contentDescription = "sort desc"
                         )
                     }
                 }
