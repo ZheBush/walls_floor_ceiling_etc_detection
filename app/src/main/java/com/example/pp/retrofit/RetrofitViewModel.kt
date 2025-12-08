@@ -6,13 +6,14 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import com.example.pp.retrofit.classes.User
+import com.example.pp.retrofit.responses.TokenResponse
 
 class RetrofitViewModel: ViewModel() {
 
     var user by mutableStateOf<User?>(null)
-    val token: MutableLiveData<String> = MutableLiveData()
+    val token: MutableLiveData<TokenResponse> = MutableLiveData()
 
-    fun setToken(newToken: String) {
+    fun setToken(newToken: TokenResponse) {
         token.value = newToken
     }
 

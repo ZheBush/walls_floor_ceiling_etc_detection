@@ -10,9 +10,11 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
@@ -127,6 +129,7 @@ fun Register(navController: NavHostController, api: MyApi, vm: RetrofitViewModel
                     } }
 
                     var isRegisterSuccess by remember { mutableStateOf(false) }
+                    var isTokenLoading by remember { mutableStateOf(false) }
 
                     Text(
                         text = "Create new account",
@@ -278,6 +281,7 @@ fun Register(navController: NavHostController, api: MyApi, vm: RetrofitViewModel
                         onClick = {
                             isButtonClicked = true
                             if (isButtonEnable.value) {
+                                isTokenLoading = true
                                 val registerData = RegisterData(
                                     email = email,
                                     password = password,
@@ -306,12 +310,14 @@ fun Register(navController: NavHostController, api: MyApi, vm: RetrofitViewModel
                                         if (response.isSuccessful) {
                                             val token = response.body()
                                             Log.d("My Login", "token: $token")
-                                            vm.setToken(token!!.token)
+                                            vm.setToken(token!!)
                                             Log.d("My Login", "vm token: ${vm.token.value}")
+                                            isTokenLoading = false
                                             navController.navigate(NavRoutes.Home.route)
                                         }
                                         else {
                                             Log.d("My Login", response.errorBody().toString())
+                                            isTokenLoading = false
                                         }
                                     }
                                 }
@@ -332,7 +338,14 @@ fun Register(navController: NavHostController, api: MyApi, vm: RetrofitViewModel
                             .padding(bottom = 4.dp)
                             .fillMaxWidth()
                     ) {
-                        if (!isButtonEnable.value) {
+                        if (isTokenLoading) {
+                            CircularProgressIndicator(
+                                color = Grey224,
+                                strokeWidth = 2.dp,
+                                modifier = Modifier.size(16.dp)
+                            )
+                        }
+                        else if (!isButtonEnable.value) {
                             if (isButtonClicked && isAnyFieldEmpty.value) {
                                 Text(
                                     text = "Some field is empty",

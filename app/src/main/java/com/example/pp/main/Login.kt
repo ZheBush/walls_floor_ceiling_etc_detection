@@ -12,9 +12,11 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
@@ -40,6 +42,7 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavHostController
 import com.example.pp.NavRoutes
+import com.example.pp.animations.DotCircle
 import com.example.pp.retrofit.RetrofitViewModel
 import com.example.pp.retrofit.MyApi
 import com.example.pp.ui.theme.Blue64
@@ -116,6 +119,8 @@ fun Login(navController: NavHostController, api: MyApi, vm: RetrofitViewModel) {
                     val isButtonEnable = remember { derivedStateOf {
                         !isButtonClicked || !isAnyFieldEmpty.value && isDataCorrect || isDataChanged.value
                     } }
+
+                    var isTokenLoading by remember { mutableStateOf(false) }
 
                     Text(
                         text = "Log in to your account",
@@ -197,6 +202,7 @@ fun Login(navController: NavHostController, api: MyApi, vm: RetrofitViewModel) {
                         onClick = {
                             isButtonClicked = true
                             if (isButtonEnable.value) {
+                                isTokenLoading = true
                                 vm.viewModelScope.launch {
                                     val response = api.login(
                                         userName = email,
@@ -205,8 +211,9 @@ fun Login(navController: NavHostController, api: MyApi, vm: RetrofitViewModel) {
                                     if (response.isSuccessful) {
                                         val token = response.body()
                                         Log.d("My Login", "token: $token")
-                                        vm.setToken(token!!.token)
+                                        vm.setToken(token!!)
                                         Log.d("My Login", "vm token: ${vm.token.value}")
+                                        isTokenLoading = false
                                         navController.navigate(NavRoutes.Home.route)
                                     }
                                     else {
@@ -214,6 +221,7 @@ fun Login(navController: NavHostController, api: MyApi, vm: RetrofitViewModel) {
                                         oldEmail = email
                                         oldPassword = password
                                         isDataCorrect = false
+                                        isTokenLoading = false
                                     }
                                 }
                             }
@@ -231,7 +239,14 @@ fun Login(navController: NavHostController, api: MyApi, vm: RetrofitViewModel) {
                         ),
                         modifier = Modifier.fillMaxWidth()
                     ) {
-                        if (!isButtonEnable.value) {
+                        if (isTokenLoading) {
+                            CircularProgressIndicator(
+                                color = Grey224,
+                                strokeWidth = 2.dp,
+                                modifier = Modifier.size(16.dp)
+                            )
+                        }
+                        else if (!isButtonEnable.value) {
                             if (isButtonClicked && isAnyFieldEmpty.value) {
                                 Text(
                                     text = "Some field is empty",

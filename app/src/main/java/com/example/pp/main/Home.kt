@@ -90,7 +90,7 @@ fun Home(navController: NavHostController, api: MyApi, vm: RetrofitViewModel, iv
             if (token != null) {
                 Log.d("My Image Upload", "token != null")
                 val history = withContext(Dispatchers.IO) {
-                    api.getHistory("Bearer ${token!!}")
+                    api.getHistory("${token!!.tokenType} ${token!!.token}")
                 }
                 history.forEachIndexed { index, img ->
                     if (index >= currentSize) {
@@ -118,7 +118,7 @@ fun Home(navController: NavHostController, api: MyApi, vm: RetrofitViewModel, iv
 
                             val response = api.uploadImage(
                                 file = imagePart,
-                                token = "Bearer ${token!!}"
+                                token = "${token!!.tokenType} ${token!!.token}"
                             )
 
                             Log.d("My Upload Image", "response: ${response.body()}")
@@ -213,7 +213,7 @@ fun Home(navController: NavHostController, api: MyApi, vm: RetrofitViewModel, iv
                 LazyColumn(
                     modifier = Modifier.fillMaxSize(),
                     contentPadding = PaddingValues(16.dp),
-                    verticalArrangement = Arrangement.spacedBy(16.dp)
+                    verticalArrangement = Arrangement.spacedBy(0.dp)
                 ) {
                     itemsIndexed(if (fromNewToOld) imageList else imageList.reversed()) { _, image ->
                         ImageItem(image, ivm)

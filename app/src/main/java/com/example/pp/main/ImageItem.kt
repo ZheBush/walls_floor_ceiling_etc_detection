@@ -81,7 +81,7 @@ fun ImageItem(image: HistoryImageResponse, ivm: ImageViewModel) {
             )
         }
         Spacer(
-            modifier = Modifier.height(10.dp)
+            modifier = Modifier.height(20.dp)
         )
     }
 }
