@@ -11,6 +11,7 @@ import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -21,6 +22,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -42,6 +44,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.vectorResource
@@ -52,9 +55,10 @@ import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavHostController
 import com.example.pp.NavRoutes
 import com.example.pp.R
-import com.example.pp.retrofit.RetrofitViewModel
+import com.example.pp.animations.DotCircle
 import com.example.pp.imageDownloader.ImageViewModel
 import com.example.pp.retrofit.MyApi
+import com.example.pp.retrofit.RetrofitViewModel
 import com.example.pp.retrofit.responses.HistoryImageResponse
 import com.example.pp.ui.theme.Blue64
 import com.example.pp.ui.theme.Grey153
@@ -142,7 +146,6 @@ fun Home(navController: NavHostController, api: MyApi, vm: RetrofitViewModel, iv
                 }
             }
         }
-
         Column(
             modifier = Modifier.fillMaxSize(),
             horizontalAlignment = Alignment.CenterHorizontally,
@@ -154,6 +157,14 @@ fun Home(navController: NavHostController, api: MyApi, vm: RetrofitViewModel, iv
                     color = Grey153,
                     fontSize = 24.sp,
                     fontWeight = FontWeight(300)
+                )
+            }
+            else if (isHistoryLoading) {
+                DotCircle(
+                    dotCount = 8,
+                    circleRadius = 4,
+                    dotRadius = 6f,
+                    dotColor = Blue64
                 )
             }
             else {
@@ -284,8 +295,4 @@ fun getFileFromUri(context: Context, uri: Uri): File {
         }
     }
     return file
-}
-
-fun linkConverter(link: String): String {
-    return link.replace("localhost", "192.168.1.100")
 }

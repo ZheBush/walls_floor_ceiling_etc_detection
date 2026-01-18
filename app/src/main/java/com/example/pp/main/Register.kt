@@ -39,8 +39,8 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavHostController
 import com.example.pp.NavRoutes
-import com.example.pp.retrofit.RetrofitViewModel
 import com.example.pp.retrofit.MyApi
+import com.example.pp.retrofit.RetrofitViewModel
 import com.example.pp.retrofit.classes.RegisterData
 import com.example.pp.ui.theme.Blue64
 import com.example.pp.ui.theme.Grey153
@@ -124,8 +124,12 @@ fun Register(navController: NavHostController, api: MyApi, vm: RetrofitViewModel
                     val isAnyFieldEmpty = remember { derivedStateOf { (email == "" || fullName == "" || password == "") } }
                     val arePasswordsSame = remember { derivedStateOf { password == confirmPassword } }
                     val isButtonEnable = remember { derivedStateOf {
-                        !isButtonClicked || !isAnyFieldEmpty.value && !isUserExists && arePasswordsSame.value
-                                || isDataChanged.value && arePasswordsSame.value
+                        !isButtonClicked
+                                || !isAnyFieldEmpty.value
+                                && !isUserExists
+                                && arePasswordsSame.value
+                                || isDataChanged.value
+                                && arePasswordsSame.value
                     } }
 
                     var isRegisterSuccess by remember { mutableStateOf(false) }
@@ -335,7 +339,10 @@ fun Register(navController: NavHostController, api: MyApi, vm: RetrofitViewModel
                             color = if (isButtonEnable.value) Blue64 else Red127,
                         ),
                         modifier = Modifier
-                            .padding(bottom = 4.dp)
+                            .padding(
+                                top = 4.dp,
+                                bottom = 4.dp
+                            )
                             .fillMaxWidth()
                     ) {
                         if (isTokenLoading) {

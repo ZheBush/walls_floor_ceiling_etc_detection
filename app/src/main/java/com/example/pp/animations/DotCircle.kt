@@ -27,7 +27,6 @@ fun DotCircle(
     dotColor: Color = Blue64
 ) {
 
-    val dotCount = 8
     val infiniteTransition = rememberInfiniteTransition()
     val rotations = List(dotCount) { index ->
         infiniteTransition.animateFloat(

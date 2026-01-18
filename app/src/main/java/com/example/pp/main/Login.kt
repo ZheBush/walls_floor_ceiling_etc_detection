@@ -1,20 +1,17 @@
 package com.example.pp.main
 
 import android.util.Log
-import android.widget.Toast
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -34,21 +31,16 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.ImeAction
-import androidx.compose.ui.text.input.KeyboardCapitalization
-import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavHostController
 import com.example.pp.NavRoutes
-import com.example.pp.animations.DotCircle
-import com.example.pp.retrofit.RetrofitViewModel
 import com.example.pp.retrofit.MyApi
+import com.example.pp.retrofit.RetrofitViewModel
 import com.example.pp.ui.theme.Blue64
 import com.example.pp.ui.theme.Grey153
 import com.example.pp.ui.theme.Grey224
@@ -59,9 +51,6 @@ import kotlinx.coroutines.launch
 @OptIn(DelicateCoroutinesApi::class)
 @Composable
 fun Login(navController: NavHostController, api: MyApi, vm: RetrofitViewModel) {
-
-    val context = LocalContext.current
-
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -77,7 +66,8 @@ fun Login(navController: NavHostController, api: MyApi, vm: RetrofitViewModel) {
                     .padding(
                         top = 8.dp,
                         start = 40.dp,
-                        end = 40.dp
+                        end = 40.dp,
+                        bottom = 4.dp
                     )
                     .shadow(
                         elevation = 5.dp,
@@ -130,7 +120,8 @@ fun Login(navController: NavHostController, api: MyApi, vm: RetrofitViewModel) {
                         text = "Log in to your account",
                         fontWeight = FontWeight(300),
                         fontSize = 20.sp,
-                        color = Blue64
+                        color = Blue64,
+                        modifier = Modifier.padding(top = 8.dp)
                     )
                     TextField(
                         value = email,
