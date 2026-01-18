@@ -337,6 +337,7 @@ fun Home(navController: NavHostController, api: MyApi, vm: RetrofitViewModel, iv
                     IconButton(
                         onClick = {
                             openGallery(galleryLauncher)
+                            isHistoryLoading = true
                         }
                     ) {
                         Icon(
